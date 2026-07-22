@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Game Omnichannel Seller Centre - Price & Stock Sync</title>
+    <style>
+        /* ---- การตั้งค่าธีม Cyberpunk Dark Mode ---- */
+        :root {
+            --bg-dark: #0f111a;
+            --bg-card: #1a1d29;
+            --bg-input: #242936;
+            --text-main: #f0f2f5;
+            --text-muted: #939aa9;
+            --primary-orange: #ff5722;
+            --primary-hover: #e64a19;
+            --neon-glow: rgba(255, 87, 34, 0.3);
+            --border-color: #2b3142;
+        }
+
+        body {
+            font-family: 'Tahoma', 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ---- 1. หน้า LOGIN ---- */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #1b2035 0%, var(--bg-dark) 70%);
+        }
+        .login-card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 15px var(--neon-glow);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-card h2 {
+            color: var(--primary-orange);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+        .login-card .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        /* ---- 2. หน้า DASHBOARD จัดการสินค้า ---- */
+        .main-dashboard {
+            display: none; /* ซ่อนไว้ก่อน Login */
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 20px 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+        }
+        .header-bar h2 { 
+            color: var(--primary-orange); 
+            margin: 0;
+            font-size: 22px;
+        }
+        .system-status { 
+            font-size: 14px;
+            background: #112620;
+            color: #00ff66;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #00aa44;
+            font-weight: bold;
+        }
+        
+        /* ตารางรายการสินค้า */
+        .table-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td { padding: 16px 20px; border-bottom: 1px solid var(--border-color); }
+        th { 
+            background-color: #141722; 
+            color: var(--text-muted); 
+            font-weight: bold; 
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        tr:hover { background-color: #1e2231; }
+        
+        /* ปุ่มแก้ไข */
+        .btn-edit {
+            background-color: transparent;
+            color: #ffb300;
+            border: 1px solid #ffb300;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-edit:hover { 
+            background-color: #ffb300; 
+            color: #121212;
+            box-shadow: 0 0 10px rgba(255, 179, 0, 0.4);
+        }
+
+        /* ---- ฟอร์มและปุ่มกดทั่วไป ---- */
+        .form-group { margin-bottom: 22px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-main); font-size: 14px; }
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%; 
+            padding: 12px 16px; 
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 15px;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+        input:focus { 
+            border-color: var(--primary-orange); 
+            box-shadow: 0 0 8px var(--neon-glow);
+            outline: none; 
+        }
+        .btn-primary {
+            width: 100%; 
+            background-color: var(--primary-orange); 
+            color: white; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--neon-glow);
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { 
+            background-color: var(--primary-hover); 
+            box-shadow: 0 4px 18px rgba(255, 87, 34, 0.5);
+        }
+
+        /* ---- หน้าต่างป๊อปอัพ (Modal Popup) ---- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: var(--bg-card); padding: 35px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative;
+        }
+        .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--primary-orange); }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+        .close-btn:hover { color: var(--text-main); }
+        
+        /* แจ้งเตือน Toast */
+        .toast-msg {
+            display: none; background-color: #112620; color: #00ff66; border: 1px solid #00aa44; padding: 14px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 12px rgba(0, 255, 102, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ================= 1. ส่วนหน้า LOGIN ================= -->
+<div class="login-container" id="loginPage">
+    <div class="login-card">
+        <h2>GUNDAM CARD STORE</h2>
+        <div class="subtitle">Omnichannel Price & Stock Sync System (Demo)</div>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">ชื่อผู้ใช้งาน (Username)</label>
+                <input type="text" id="username" placeholder="ระบุบัญชีผู้ใช้ (เช่น admin)" required>
+            </div>
+            <div class="form-group">
+                <label for="password">รหัสผ่าน (Password)</label>
+                <input type="password" id="password" placeholder="ระบุรหัสผ่าน (เช่น 1234)" required>
+            </div>
+            <button type="submit" id="btn_login" class="btn-primary">เข้าสู่ระบบ SELLER CENTRE</button>
+        </form>
+    </div>
+</div>
+
+<!-- ================= 2. ส่วนหน้า DASHBOARD ================= -->
+<div class="main-dashboard" id="dashboardPage">
+    <div class="header-bar">
+        <h2>Gundam Seller Centre <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">| แผงควบคุมราคาและสต็อก</span></h2>
+        <div class="system-status">● บอท RPA พร้อมเชื่อมต่อ</div>
+    </div>
+
+    <div id="toast" class="toast-msg">✓ ระบบอัตโนมัติ: ซิงค์ข้อมูล "ราคา" และ "จำนวนสินค้า" ล่าสุดเรียบร้อยแล้ว</div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>รหัสสินค้า (Card ID)</th>
+                    <th>ชื่อการ์ด (Card Name)</th>
+                    <th>ระดับความหายาก (Rarity)</th>
+                    <th>ราคาปัจจุบัน (Baht)</th>
+                    <th>สต็อกออนไลน์ปัจจุบัน</th>
+                    <th>การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="row-GD04-066">
+                    <td>GD04-066</td>
+                    <td>ユニコーンガンダム (ยูนิคอร์น กันดั้ม)</td>
+                    <td><span style="color: #ff3d00; font-weight: bold;">LR</span></td>
+                    <td id="price-GD04-066" style="font-weight: bold; color: #69f0ae;">250</td>
+                    <td id="stock-GD04-066" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">4</td>
+                    <td><button class="btn-edit" id="btn-edit-GD04-066" onclick="openStockModal('GD04-066', 'ユニコーンガンダム', 4, 250)">แก้ไขข้อมูล</button></td>
+                </tr>
+                <tr id="row-ST09-001">
+                    <td>ST09-001</td>
+                    <td>インパルスガンダム (อิมพัลส์ กันดั้ม)</td>
+                    <td><span style="color: #ff3d00; font-weight: bold;">LR+</span></td>
+                    <td id="price-ST09-001" style="font-weight: bold; color: #69f0ae;">1500</td>
+                    <td id="stock-ST09-001" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">1</td>
+                    <td><button class="btn-edit" id="btn-edit-ST09-001" onclick="openStockModal('ST09-001', 'インパルスガンダム', 1, 1500)">แก้ไขข้อมูล</button></td>
+                </tr>
+                <tr id="row-ST07-011">
+                    <td>ST07-011</td>
+                    <td>ロックオン・ストラトス (ล็อคออน สตราทอส)</td>
+                    <td><span style="color: #00b0ff;">C+</span></td>
+                    <td id="price-ST07-011" style="font-weight: bold; color: #69f0ae;">300</td>
+                    <td id="stock-ST07-011" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">0</td>
+                    <td><button class="btn-edit" id="btn-edit-ST07-011" onclick="openStockModal('ST07-011', 'ロックオン・ストラトス', 0, 300)">แก้ไขข้อมูล</button></td>
+                </tr>
+                <tr id="row-ST07-013">
+                    <td>ST07-013</td>
+                    <td>武力介入 (การแทรกแซงด้วยกำลัง)</td>
+                    <td><span style="color: #00b0ff;">C+</span></td>
+                    <td id="price-ST07-013" style="font-weight: bold; color: #69f0ae;">150</td>
+                    <td id="stock-ST07-013" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">2</td>
+                    <td><button class="btn-edit" id="btn-edit-ST07-013" onclick="openStockModal('ST07-013', '武力介入', 2, 150)">แก้ไขข้อมูล</button></td>
+                </tr>
+                <tr id="row-GD01-005">
+                    <td>GD01-005</td>
+                    <td>ユニコーンガンダム (ยูนิคอร์น กันดั้ม)</td>
+                    <td><span style="color: #e040fb;">R+</span></td>
+                    <td id="price-GD01-005" style="font-weight: bold; color: #69f0ae;">350</td>
+                    <td id="stock-GD01-005" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">4</td>
+                    <td><button class="btn-edit" id="btn-edit-GD01-005" onclick="openStockModal('GD01-005', 'ユニコーンガンダム', 4, 350)">แก้ไขข้อมูล</button></td>
+                </tr>
+                <tr id="row-GD01-118">
+                    <td>GD01-118</td>
+                    <td>溢れる慈愛 (ความรักความเมตตาที่เปี่ยมล้น)</td>
+                    <td><span style="color: #69f0ae;">U</span></td>
+                    <td id="price-GD01-118" style="font-weight: bold; color: #69f0ae;">60</td>
+                    <td id="stock-GD01-118" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">8</td>
+                    <td><button class="btn-edit" id="btn-edit-GD01-118" onclick="openStockModal('GD01-118', '溢れる慈愛', 8, 60)">แก้ไขข้อมูล</button></td>
+                </tr>
+                <tr id="row-GD03-034">
+                    <td>GD03-034</td>
+                    <td>GQuuuuuuX (โอเมก้า ไซคอมมิวล็อกอิน)</td>
+                    <td><span style="color: #ff3d00; font-weight: bold;">LR</span></td>
+                    <td id="price-GD03-034" style="font-weight: bold; color: #69f0ae;">500</td>
+                    <td id="stock-GD03-034" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">3</td>
+                    <td><button class="btn-edit" id="btn-edit-GD03-034" onclick="openStockModal('GD03-034', 'GQuuuuuuX', 3, 500)">แก้ไขข้อมูล</button></td>
+                </tr>
+                <tr id="row-GD02-054">
+                    <td>GD02-054</td>
+                    <td>ガンダム・バルバトス (กันดั้ม บาร์บาทอส 第1形態)</td>
+                    <td><span style="color: #ffea00; font-weight: bold;">LR++</span></td>
+                    <td id="price-GD02-054" style="font-weight: bold; color: #69f0ae;">14000</td>
+                    <td id="stock-GD02-054" style="font-weight: bold; color: var(--primary-orange); font-size: 16px;">1</td>
+                    <td><button class="btn-edit" id="btn-edit-GD02-054" onclick="openStockModal('GD02-054', 'ガンダム・バルバトス', 1, 14000)">แก้ไขข้อมูล</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ================= 3. หน้าต่าง MODAL POPUP (เพิ่มช่องแก้ราคา) ================= -->
+<div class="modal" id="stockModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-title" id="modalTargetTitle">แก้ไขข้อมูลสินค้าออนไลน์</div>
+        <form onsubmit="saveDataUpdate(event)">
+            <input type="hidden" id="modalCardId">
+            
+            <!-- ช่องแก้ไขราคา (เพิ่มมาใหม่) -->
+            <div class="form-group">
+                <label for="modalNewPrice">ราคาขายล่าสุด (Baht)</label>
+                <input type="number" id="modalNewPrice" min="1" required>
+            </div>
+
+            <!-- ช่องแก้ไขสต็อก -->
+            <div class="form-group">
+                <label for="modalNewStock">จำนวนคลังสินค้าล่าสุด (ชิ้น)</label>
+                <input type="number" id="modalNewStock" min="0" required>
+            </div>
+            
+            <button type="submit" id="btn_save_data" class="btn-primary">บันทึกและซิงค์ข้อมูล</button>
+        </form>
+    </div>
+</div>
+
+<!-- ================= 4. ระบบควบคุม (JavaScript) ================= -->
+<script>
+    function handleLogin(event) {
+        event.preventDefault();
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("dashboardPage").style.display = "block";
+    }
+
+    function openStockModal(cardId, cardName, currentStock, currentPrice) {
+        document.getElementById("modalCardId").value = cardId;
+        document.getElementById("modalTargetTitle").innerText = "แก้ไขข้อมูล: " + cardId;
+        document.getElementById("modalNewStock").value = currentStock;
+        document.getElementById("modalNewPrice").value = currentPrice; // ดึงค่าราคาเก่ามารอไว้
+        document.getElementById("stockModal").style.display = "flex";
+        setTimeout(() => { document.getElementById("modalNewPrice").focus(); }, 100);
+    }
+
+    function closeModal() {
+        document.getElementById("stockModal").style.display = "none";
+    }
+
+    function saveDataUpdate(event) {
+        event.preventDefault();
+        const cardId = document.getElementById("modalCardId").value;
+        const newStock = document.getElementById("modalNewStock").value;
+        const newPrice = document.getElementById("modalNewPrice").value;
+        
+        // อัปเดตทั้งราคาและสต็อกลงหน้าจอแสดงผล
+        document.getElementById("stock-" + cardId).innerText = newStock;
+        document.getElementById("price-" + cardId).innerText = newPrice;
+        
+        // อัปเดตตรรกะในปุ่มกดให้จำค่าล่าสุด
+        const btn = document.getElementById("btn-edit-" + cardId);
+        btn.setAttribute("onclick", `openStockModal('${cardId}', '', ${newStock}, ${newPrice})`);
+
+        closeModal();
+
+        const toast = document.getElementById("toast");
+        toast.style.display = "block";
+        setTimeout(() => { toast.style.display = "none"; }, 2500);
+    }
+</script>
+
+</body>
+</html>
